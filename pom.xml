@@ -23,7 +23,7 @@
 		<json-simple.version>1.1.1</json-simple.version>
 		<mongodb.version>2.11.0-RC1</mongodb.version>
 		<commons-io.version>2.4</commons-io.version>
-		<open-imaj.version>1.1.1-SNAPSHOT</open-imaj.version>
+		<open-imaj.version>1.1</open-imaj.version>
 	</properties>
 
 	<developers>
