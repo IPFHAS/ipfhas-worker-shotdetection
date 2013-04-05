@@ -12,6 +12,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.openimaj.image.MBFImage;
 import org.openimaj.video.Video;
+import org.openimaj.video.processing.shotdetector.HistogramVideoShotDetector;
 import org.openimaj.video.processing.shotdetector.ShotBoundary;
 import org.openimaj.video.processing.shotdetector.VideoShotDetector;
 import org.openimaj.video.xuggle.XuggleVideo;
@@ -178,7 +179,7 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 			Video<MBFImage> video = new XuggleVideo(videoPath);
 			
 			// Launch shot detection
-			VideoShotDetector vsd = new VideoShotDetector(video, false);
+			HistogramVideoShotDetector vsd = new HistogramVideoShotDetector(video, false);
 			
 			// Listener instantiation
 			Listener listener = new Listener();

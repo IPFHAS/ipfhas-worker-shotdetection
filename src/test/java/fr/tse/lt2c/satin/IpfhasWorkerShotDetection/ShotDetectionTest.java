@@ -1,5 +1,10 @@
 package fr.tse.lt2c.satin.IpfhasWorkerShotDetection;
 
+import java.util.List;
+
+import org.openimaj.image.MBFImage;
+import org.openimaj.video.processing.shotdetector.ShotBoundary;
+import org.openimaj.video.timecode.VideoTimecode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,4 +59,6 @@ public class ShotDetectionTest {
 		// Test the videoAddress field
 		assertEquals(jsonObj.get("videoAddress"), dataReceived.get("videoAddress"));
 	}
+	
+	
 }

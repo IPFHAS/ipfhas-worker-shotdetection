@@ -76,7 +76,6 @@ public class VideoInitializationTest {
 		}
 		catch(Exception e) {
 			logger.error("Bug in testCopyVideoFromUrl: {}", e);
-		}
-		
+		}	
 	}
 }

@@ -41,7 +41,7 @@ public class IpfhasWorkerShotDetection {
 	/**
 	 * Mongo database
 	 */
-	private static final String MONGODB_DB = "shotDetection";
+	private static final String MONGODB_DB = "ipfhas";
 	
 	/**
 	 * Mongo collection
