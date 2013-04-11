@@ -40,16 +40,16 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 	 * Video name
 	 */
 	protected String videoName;
+	
+	/**
+	 * Video extension
+	 */
+	private String extension;
 
 	/**
 	 * Video Address
 	 */
 	private String videoAddress;
-
-	/**
-	 * Folder Path
-	 */
-	private String folderPath;
 
 	/**
 	 * Video Folder File
@@ -102,12 +102,13 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 			videoId = (ObjectId) dataJson.get("_id");
 
 			// Find videoName in the database
-			//videoName = dataJson.get("videoName").toString();
-			//videoAddress = dataJson.get("videoAddress").toString();
-			videoName = super.getMongoConn().findInMongoDb("_id", videoId, "videoName").toString();
-			videoAddress = super.getMongoConn().findInMongoDb("_id", videoId, "videoAddress").toString();
-			folderPath = dataJson.get("folderPath").toString();
-			shotThreshold = (int) dataJson.get("shotThreshold");
+			videoName = dataJson.get("videoName").toString();
+			videoAddress = dataJson.get("videoAddress").toString();
+			shotThreshold = Integer.parseInt(dataJson.get("shotThreshold").toString());
+			extension = dataJson.get("extension").toString();
+			//videoName = super.getMongoConn().findInMongoDb("_id", videoId, "videoName").toString();
+			//videoAddress = super.getMongoConn().findInMongoDb("_id", videoId, "videoAddress").toString();
+			//folderPath = dataJson.get("folderPath").toString();
 
 			// Initialize variables
 			folder = new File(folderPath);
@@ -119,23 +120,25 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 			videoInit.createVideoFolder(folder);
 
 			// Initialize variables
-			videoPath = new File(folder.getAbsoluteFile() + "/" + videoName);
+			videoPath = new File(folder.getAbsoluteFile() + "/" + videoName + "/" + videoName + '.' + extension);
 			videoUrl = new URL(videoAddress);	
 
 			// Copy video from an url to the folder
 			videoInit.copyVideoFromUrl(videoUrl, videoPath);
 
 			// Initialize variable shotPath
-			shotPath = new File(videoPath.getAbsolutePath() + "/Shots");
-			
+			/*
+			shotPath = new File(folder.getAbsoluteFile() + "/" + videoName + "/Shots");
+			logger.debug("shotPath: {}", shotPath.toString());
 			// Create a folder to stock the shot images
-			videoInit.createVideoFolder(shotPath);
+			videoInit.createVideoFolder(shotPath);		
+			*/
 
 			// Launch the shot detection
-			JSONArray listShots = openImajWork(this.videoPath);
+			JSONObject listShots = openImajWork(this.videoPath);
 			
 			// Insert the shot list into the database
-			super.getMongoConn().addInMongoDb("_id", videoId, "listShot", listShots);
+			//super.getMongoConn().addInMongoDb("_id", videoId, "listShot", listShots);
 			
 			// Return the shots list
 			return listShots.toJSONString().getBytes();
@@ -169,9 +172,9 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 	/**
 	 * OpenImaj work for shot detection
 	 * @param videoPath String of the video Path
-	 * @return JSONArray List of the shots
+	 * @return JSONObject List of the shots
 	 */
-	private JSONArray openImajWork(File videoPath) {
+	private JSONObject openImajWork(File videoPath) {
 		try {
 			logger.info("---- in openImajWork ----");
 
@@ -198,8 +201,9 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 			}
 
 			// Convert listShot into a JSONArray
-			JSONArray listShotJson = listShotToJsonArray(listShot);
-
+			JSONObject listShotJson = new JSONObject();
+			listShotJson.put("listShots", listShotToJsonArray(listShot));
+			
 			return listShotJson;
 		}
 		catch(Exception e) {

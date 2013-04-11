@@ -54,6 +54,11 @@ public class IpfhasWorkerShotDetection {
 	private static MongoDbConnection mongoConn;
 	
 	/**
+	 * Folder Path
+	 */
+	protected static final String folderPath = "Videos";
+	
+	/**
 	 * Get the mongo connection
 	 * @return the mongoConn
 	 */

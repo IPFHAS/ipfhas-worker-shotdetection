@@ -39,12 +39,15 @@ public class Listener extends ShotDetection implements ShotDetectedListener<MBFI
 			VideoKeyframe<MBFImage> vk) {
 		
 		try {
+			// Not used for now
+			/*
 			File outputFile = new File(shotPath.getAbsolutePath() 
 					+ "/" + videoName 
 					+ "_" + sb.toString()
 					+ ".png");
 			
 			ImageUtilities.write(vk.getImage(), "png", outputFile);
+			*/
 		}
 		catch(Exception e) {
 			logger.error("Bug in shotDetected: {}", e);
