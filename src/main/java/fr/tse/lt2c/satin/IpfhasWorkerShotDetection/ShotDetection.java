@@ -121,7 +121,7 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 
 			// Initialize variables
 			videoPath = new File(folder.getAbsoluteFile() + "/" + videoName + "/" + videoName + '.' + extension);
-			videoUrl = new URL(videoAddress);	
+			//videoUrl = new URL(videoAddress);	
 
 			// Copy video from an url to the folder
 			//videoInit.copyVideoFromUrl(videoUrl, videoPath);
@@ -178,8 +178,16 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 		try {
 			logger.info("---- in openImajWork ----");
 
+			Video<MBFImage> video;
+			
 			// Video Instantiation
-			Video<MBFImage> video = new XuggleVideo(videoUrl);
+			if(videoAddress.startsWith("http")){
+				videoUrl = new URL(videoAddress);
+				video = new XuggleVideo(videoUrl);
+			}
+			else {
+				video = new XuggleVideo(videoAddress);
+			}
 			
 			// Launch shot detection
 			HistogramVideoShotDetector vsd = new HistogramVideoShotDetector(video, false);
