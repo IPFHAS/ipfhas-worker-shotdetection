@@ -2,6 +2,7 @@ package fr.tse.lt2c.satin.IpfhasWorkerShotDetection;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.types.ObjectId;
@@ -44,7 +45,7 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 	/**
 	 * Video extension
 	 */
-	private String extension;
+	private String videoExtension;
 
 	/**
 	 * Video Address
@@ -75,6 +76,11 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 	 * Shot detection threshold
 	 */
 	private int shotThreshold;
+	
+	/**
+	 * Video duration
+	 */
+	private Long videoDuration;
 
 	/**
 	 * Constructor
@@ -98,50 +104,38 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 			// Convert data to byte[] into JSONObject
 			JSONObject dataJson = convertDataToJson(data);
 
+			logger.debug("data received: {}", dataJson);
+			
 			// Extract data from JSONObject
 			videoId = (ObjectId) dataJson.get("_id");
-
-			// Find videoName in the database
 			videoName = dataJson.get("videoName").toString();
 			videoAddress = dataJson.get("videoAddress").toString();
 			shotThreshold = Integer.parseInt(dataJson.get("shotThreshold").toString());
-			extension = dataJson.get("extension").toString();
-			//videoName = super.getMongoConn().findInMongoDb("_id", videoId, "videoName").toString();
-			//videoAddress = super.getMongoConn().findInMongoDb("_id", videoId, "videoAddress").toString();
-			//folderPath = dataJson.get("folderPath").toString();
+			videoExtension = dataJson.get("videoExtension").toString();
 
 			// Initialize variables
 			folder = new File(folderPath);
 
-			// Video initialization
-			//VideoInitialization videoInit = new VideoInitialization();
-
-			// Create video folder
-			//videoInit.createVideoFolder(folder);
-
 			// Initialize variables
-			videoPath = new File(folder.getAbsoluteFile() + "/" + videoName + "/" + videoName + '.' + extension);
-			//videoUrl = new URL(videoAddress);	
-
-			// Copy video from an url to the folder
-			//videoInit.copyVideoFromUrl(videoUrl, videoPath);
-
-			// Initialize variable shotPath
-			/*
-			shotPath = new File(folder.getAbsoluteFile() + "/" + videoName + "/Shots");
-			logger.debug("shotPath: {}", shotPath.toString());
-			// Create a folder to stock the shot images
-			videoInit.createVideoFolder(shotPath);		
-			*/
+			videoPath = new File(folder.getAbsoluteFile() + "/" + videoName + "/" + videoName + '.' + videoExtension);	
 
 			// Launch the shot detection
-			JSONObject listShots = openImajWork(this.videoPath);
+			List<ShotBoundary<MBFImage>> listShotsBoundary = openImajWork(this.videoPath);
+			JSONArray listShots = new JSONArray();
 			
-			// Insert the shot list into the database
-			//super.getMongoConn().addInMongoDb("_id", videoId, "listShot", listShots);
+			for(int i=0; i<listShotsBoundary.size(); i++) {
+				listShots.add(listShotsBoundary.get(i).toString());
+			}
+			
+			//Prepare data to send
+			JSONObject sendBack = new JSONObject();
+			sendBack.put("listShots", listShots);
+			sendBack.put("videoDuration", videoDuration);
+			
+			logger.debug("sendBack: {}", sendBack.toJSONString());
 			
 			// Return the shots list
-			return listShots.toJSONString().getBytes();
+			return sendBack.toJSONString().getBytes();
 		}
 		catch(Exception e) {
 			logger.error("Bug in ShotDetection: {}", e);
@@ -161,6 +155,9 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 			String dataString = new String(data);
 			Object obj = JSONValue.parse(dataString);
 			JSONObject dataJsonObject = (JSONObject) obj;
+			
+			logger.debug("dataJsonObject: {}", dataJsonObject);
+			
 			return dataJsonObject;
 		}
 		catch(Exception e) {
@@ -174,11 +171,11 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 	 * @param videoPath String of the video Path
 	 * @return JSONObject List of the shots
 	 */
-	private JSONObject openImajWork(File videoPath) {
+	private List<ShotBoundary<MBFImage>> openImajWork(File videoPath) {
 		try {
 			logger.info("---- in openImajWork ----");
 
-			Video<MBFImage> video;
+			XuggleVideo video;
 			
 			// Video Instantiation
 			if(videoAddress.startsWith("http")){
@@ -188,6 +185,9 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 			else {
 				video = new XuggleVideo(videoAddress);
 			}
+			
+			// Find the video duration
+			videoDuration = video.getDuration();
 			
 			// Launch shot detection
 			HistogramVideoShotDetector vsd = new HistogramVideoShotDetector(video, false);
@@ -202,17 +202,13 @@ public class ShotDetection extends IpfhasWorkerShotDetection implements GearmanF
 			vsd.process();
 			
 			List<ShotBoundary<MBFImage>> listShot = vsd.getShotBoundaries();
-
+			
 			// Debug
 			for(int i=0; i<listShot.size(); i++) {
 				logger.debug("{}", listShot.get(i).toString());
 			}
-
-			// Convert listShot into a JSONArray
-			JSONObject listShotJson = new JSONObject();
-			listShotJson.put("listShots", listShotToJsonArray(listShot));
 			
-			return listShotJson;
+			return listShot;
 		}
 		catch(Exception e) {
 			logger.error("Bug in openImajWork: {}", e);
