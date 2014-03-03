@@ -11,6 +11,12 @@ import org.openimaj.video.timecode.VideoTimecode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Class for the Shot Detection
+ * 
+ * @author Antoine Lavignotte
+ * @version 1.0
+ */
 public class Listener extends ShotDetection implements ShotDetectedListener<MBFImage> {
 
 	/**
